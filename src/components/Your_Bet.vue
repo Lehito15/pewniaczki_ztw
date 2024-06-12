@@ -86,6 +86,7 @@ export default {
   background-color: #2e3948;
   color: white;
   border: 1px solid #ccc;
+  border-radius: 40px;
 }
 
 .summary-left {

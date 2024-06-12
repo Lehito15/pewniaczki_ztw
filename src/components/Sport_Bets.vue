@@ -6,7 +6,7 @@
         <div
           v-for="(bettingOdd, index) in bettingOdds"
           :key="index"
-          class="betting-odd p-3 mb-3 bg-light rounded"
+          class="betting-odd p-3 bg-light rounded mb-3"
           @mouseover="hoverEffect(true, index)"
           @mouseleave="hoverEffect(false, index)"
         >
@@ -14,14 +14,17 @@
             <p>{{ bettingOdd.team1 }} vs {{ bettingOdd.team2 }}</p>
             <div class="d-flex align-items-center">
               <button
+                class="btn custom-button"
                 :class="['btn', 'me-2', isSelected(index, 'odds1') ? 'btn-warning' : 'btn-primary']"
                 @click="selectBet(index, 'odds1', bettingOdd.odds1, bettingOdd.team1, bettingOdd.team2)"
               >{{ bettingOdd.odds1 }}</button>
               <button
+                class="btn custom-button"
                 :class="['btn', 'me-2', isSelected(index, 'oddsX') ? 'btn-warning' : 'btn-primary']"
                 @click="selectBet(index, 'oddsX', bettingOdd.oddsX, bettingOdd.team1, bettingOdd.team2)"
               >X {{ bettingOdd.oddsX }}</button>
               <button
+                class="btn custom-button"
                 :class="['btn', isSelected(index, 'odds2') ? 'btn-warning' : 'btn-primary']"
                 @click="selectBet(index, 'odds2', bettingOdd.odds2, bettingOdd.team1, bettingOdd.team2)"
               >{{ bettingOdd.odds2 }}</button>
@@ -87,17 +90,20 @@ html, body {
   margin: 0;
 }
 
+
 .betting-odds-container {
   display: flex;
   justify-content: center;
   height: 75vh;
   overflow-y: auto;
   background-color: #2e3948;
+  border-radius: 40px;
 }
 
 .betting-odds {
   width: 80%;
   max-width: 600px;
+  
 }
 
 .betting-odd {
@@ -117,5 +123,9 @@ html, body {
 .odds-buttons button.selected {
   background-color: yellow;
   color: black;
+}
+.custom-button {
+  width: 80px; /* Stała szerokość przycisków */
+  margin-right: 10px; /* Odstęp między przyciskami */
 }
 </style>

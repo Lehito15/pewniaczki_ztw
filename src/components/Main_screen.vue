@@ -7,12 +7,12 @@
       <div class="component-small">
         <Categories />
       </div>
+      <div class="component-small-right">
+        <Categories />
+      </div>
       <div class="component-large">
         <Betss @bet-selected="handleBetSelected"/>
         <Your_Bet />
-      </div>
-      <div class="component-small">
-        <Categories />
       </div>
     </div>
   </div>
@@ -42,18 +42,19 @@ export default {
 <style scoped>
 .main-container {
   display: grid;
-  grid-template-rows: auto 1fr; /* Pierwszy rząd dostosowuje się do zawartości, drugi rząd zajmuje dostępną przestrzeń */
-  min-height: 100vh; /* Minimalna wysokość, aby kontener zajmował całą wysokość ekranu */
+  grid-template-rows: auto 1fr, 1fr; /* Pierwszy rząd dostosowuje się do zawartości, drugi rząd zajmuje dostępną przestrzeń, trzeci rząd dostosowuje się do zawartości */
+  min-height: 90vh; /* Minimalna wysokość, aby kontener zajmował całą wysokość ekranu */
 }
 
 .content-wrapper {
   display: grid;
-  grid-template-columns: 10% 70% 15%; /* Komponenty są rozmieszczone w proporcjach 20%, 60%, 20% */
-  gap: 10px; /* Odstęp między komponentami */
+  grid-template-columns: 15% 70% 15%; /* Komponenty są rozmieszczone w proporcjach 15%, 70%, 15% */
+  gap: 1px; /* Odstęp między komponentami */
 }
 
 .component-small,
-.component-large {
+.component-large,
+.component-small-right {
   /* Styl komponentów */
 }
 
@@ -63,5 +64,11 @@ export default {
 
 .component-large {
   /* Styl dla większego komponentu */
+}
+
+.component-small-right {
+  /* Styl dla komponentu small-right */
+  grid-column: 3; /* Komponent small-right zajmuje pierwszą kolumnę */
+  grid-row: 3 / 1; /* Komponent small-right zajmuje drugi rząd i zaczyna się od połowy drugiego rzędu */
 }
 </style>

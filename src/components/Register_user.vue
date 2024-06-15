@@ -17,6 +17,10 @@
           <input type="text" id="pesel" v-model="pesel" required>
         </div>
         <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" v-model="email" required>
+        </div>
+        <div class="form-group">
           <label>Płeć:</label>
           <input type="radio" id="male" value="male" v-model="gender"> <label for="M">Mężczyzna</label>
           <input type="radio" id="female" value="female" v-model="gender"> <label for="K">Kobieta</label>
@@ -48,6 +52,7 @@ export default {
       firstName: '',
       lastName: '',
       pesel: '',
+      email: '',
       gender: '', // 'male' or 'female'
       dob: '',
       password: ''
@@ -91,62 +96,44 @@ export default {
 
   },
   methods: {
-  //   async register() {
-  //   // Sprawdź, czy użytkownik jest pełnoletni, hasło spełnia wymagania i numer PESEL jest poprawny
-  //   if (this.isAdult && this.isPasswordValid && this.isPeselValid) {
-  //     // Przygotuj dane do wysłania na serwer
-  //     const userData = {
-  //       firstName: this.firstName,
-  //       lastName: this.lastName,
-  //       pesel: this.pesel,
-  //       gender: this.gender,
-  //       dob: this.dob,
-  //       password: this.password // Tutaj możesz zahaszować hasło przed wysłaniem na serwer
-  //     };
+    async register() {
+    // Sprawdź, czy użytkownik jest pełnoletni, hasło spełnia wymagania i numer PESEL jest poprawny
+    if (this.isAdult && this.isPasswordValid && this.isPeselValid) {
+      // Przygotuj dane do wysłania na serwer
+      const userData = {
+        firstName: this.firstName,
+        lastName: this.lastName,
+        // pesel: this.pesel,
+        // gender: this.gender,
+        email: this.email,
+        // dob: this.dob,
+        password: this.firstName // Tutaj możesz zahaszować hasło przed wysłaniem na serwer
+      };
 
-  //     try {
-  //       // Wysyłanie żądania POST na serwer
-  //       const response = await fetch('localhost:8081/register', {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json'
-  //         },
-  //         body: JSON.stringify(userData)
-  //       });
+      try {
+        // Wysyłanie żądania POST na serwer
+        const response = await fetch('http://localhost:8081/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(userData)
+        });
 
-  //       // Sprawdź status odpowiedzi
-  //       if (response.ok) {
-  //         // Przekieruj użytkownika na stronę główną w przypadku sukcesu
-  //         window.location.href = 'URL_STRONY_GLOWNEJ';
-  //       } else {
-  //         // Wyświetl alert w przypadku niepowodzenia
-  //         alert('Rejestracja nie powiodła się. Spróbuj ponownie.');
-  //       }
-  //     } catch (error) {
-  //       console.error('Błąd podczas wysyłania żądania:', error);
-  //       // Wyświetl alert w przypadku błędu
-  //       alert('Wystąpił błąd. Spróbuj ponownie później.');
-  //     }
-  //   } else if (!this.isPasswordValid) {
-  //       // Wyświetl komunikat, jeśli hasło nie spełnia wymagań
-  //       alert('złe hasło');
-  //       console.log('Hasło musi zawierać co najmniej 8 znaków, 1 wielką literę i 1 znak specjalny.');
-  //     } else  if(!this.isAdult) {
-  //       // Wyświetl komunikat, jeśli użytkownik nie jest pełnoletni
-  //       alert("Musisz mieć co najmniej 18 lat, aby się zarejestrować.")
-  //       console.log('Musisz mieć co najmniej 18 lat, aby się zarejestrować.');
-  //     }
-  //     else{
-  //       alert("Zły pesel");
-  //     }
-  // },
-    register() {
-      // Sprawdź, czy użytkownik jest pełnoletni i hasło spełnia wymagania
-      if (this.isAdult == true && this.isPasswordValid && this.isPeselValid) {
-        console.log('Rejestracja:', this.firstName, this.lastName, this.pesel, this.gender, this.dob, this.password);
-        this.$emit('my-register');
-        window.location.hash = '/';
-      } else if (!this.isPasswordValid) {
+        // Sprawdź status odpowiedzi
+        if (response.ok) {
+          // Przekieruj użytkownika na stronę główną w przypadku sukcesu
+          window.location.href = '/';
+        } else {
+          // Wyświetl alert w przypadku niepowodzenia
+          alert('Rejestracja nie powiodła się. Spróbuj ponownie.');
+        }
+      } catch (error) {
+        console.error('Błąd podczas wysyłania żądania:', error);
+        // Wyświetl alert w przypadku błędu
+        alert('Wystąpił błąd. Spróbuj ponownie później.');
+      }
+    } else if (!this.isPasswordValid) {
         // Wyświetl komunikat, jeśli hasło nie spełnia wymagań
         alert('złe hasło');
         console.log('Hasło musi zawierać co najmniej 8 znaków, 1 wielką literę i 1 znak specjalny.');
@@ -158,7 +145,26 @@ export default {
       else{
         alert("Zły pesel");
       }
-    }
+  },
+    // register() {
+    //   // Sprawdź, czy użytkownik jest pełnoletni i hasło spełnia wymagania
+    //   if (this.isAdult == true && this.isPasswordValid && this.isPeselValid) {
+    //     console.log('Rejestracja:', this.firstName, this.lastName, this.pesel, this.gender, this.dob, this.password);
+    //     this.$emit('my-register');
+    //     window.location.hash = '/';
+    //   } else if (!this.isPasswordValid) {
+    //     // Wyświetl komunikat, jeśli hasło nie spełnia wymagań
+    //     alert('złe hasło');
+    //     console.log('Hasło musi zawierać co najmniej 8 znaków, 1 wielką literę i 1 znak specjalny.');
+    //   } else  if(!this.isAdult) {
+    //     // Wyświetl komunikat, jeśli użytkownik nie jest pełnoletni
+    //     alert("Musisz mieć co najmniej 18 lat, aby się zarejestrować.")
+    //     console.log('Musisz mieć co najmniej 18 lat, aby się zarejestrować.');
+    //   }
+    //   else{
+    //     alert("Zły pesel");
+    //   }
+    // }
   }
 };
 </script>

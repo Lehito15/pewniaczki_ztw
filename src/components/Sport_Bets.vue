@@ -34,6 +34,7 @@
       </div>
     </div>
   </div>
+  <button  @click="printBets" >Print</button>
 </template>
 
 <script>
@@ -45,10 +46,30 @@ export default {
         { team1: 'Manchester United', team2: 'Liverpool', odds1: 2.0, oddsX: 2.5, odds2: 3.0 },
         // Add more betting odds as needed
       ],
-      selectedBetsList: []
+      selectedBetsList: [],
+      bets: []
     };
   },
   methods: {
+    async fetchBets(){
+      try{
+
+      
+     const response = await fetch('http://localhost:8081/events')
+     const  data = await response.json()
+     this.bets = data
+     console.log('fwefw')
+    
+
+      }
+      catch(error){
+        console.log(error)
+      }
+    },
+    printBets(){
+      console.log(this.bets)
+
+    },
     selectBet(index, oddsType, oddsValue, team1, team2) {
       const existingBetIndex = this.selectedBetsList.findIndex(item => item.index === index);
 
@@ -80,7 +101,10 @@ export default {
         element.style.backgroundColor = '#f8f9fa';
       }
     }
-  }
+  },
+  mounted() {
+ this.fetchBets()
+ }, 
 };
 </script>
 

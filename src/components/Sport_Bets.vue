@@ -53,8 +53,6 @@ export default {
   methods: {
     async fetchBets(){
       try{
-
-      
      const response = await fetch('http://localhost:8081/events')
      const  data = await response.json()
      this.bets = data
@@ -64,10 +62,13 @@ export default {
       }
       catch(error){
         console.log(error)
+        console.log("error kurde");
       }
     },
     printBets(){
-      console.log(this.bets)
+         const logoutUri = encodeURIComponent("http://localhost:8080");
+  console.log("logoituri")
+  console.log(logoutUri);
 
     },
     selectBet(index, oddsType, oddsValue, team1, team2) {

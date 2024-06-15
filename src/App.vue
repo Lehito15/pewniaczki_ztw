@@ -22,6 +22,7 @@ const routes = {
   '/add-money': add_money
 
 }
+import { onMounted } from 'vue'
 
 const currentPath = ref(window.location.hash.slice(1) || '/')
 
@@ -39,9 +40,22 @@ const navigate = (path) => {
   window.location.hash = path
   console.log('Navigating to:', path)
 }
+const print = () =>{
+  const accessToken = localStorage.getItem('access_token');
+  const refreshToken = localStorage.getItem('refresh_token');
+
+  // Wyświetl tokeny w konsoli
+  console.log('Access Token:', accessToken);
+  console.log('Refresh Token:', refreshToken);
+   const logoutUri = encodeURIComponent("http://localhost:8080");
+  console.log("logoituri")
+  console.log(logoutUri);
+}
+
 
 const loggedIn = ref(JSON.parse(localStorage.getItem('loggedIn')) || false)
 const showOptions = ref(false)
+let refreshTokenInterval = null
 
 const handleLogin = () => {
   localStorage.setItem('loggedIn', true)
@@ -50,11 +64,125 @@ const handleLogin = () => {
 }
 
 const logout = () => {
-  localStorage.setItem('loggedIn', false)
-  loggedIn.value = false
-  navigate('/login')
-  console.log('Logged Out:', loggedIn.value)
+  // Ustaw stan wylogowania w localStorage
+  localStorage.setItem('loggedIn', false);
+
+  // Zaktualizuj stan aplikacji
+  loggedIn.value = false;
+
+  // Przekieruj użytkownika na stronę logowania
+  navigate('/login');
+
+  console.log('Logged Out:', loggedIn.value);
+
+  // Przygotuj URL do wylogowania z Cognito
+  const logoutUri = encodeURIComponent("http://localhost:8080");
+  console.log("logoituri")
+  console.log(logoutUri);
+  const clientId = "4e9n69qdrtscnsd0d3907csknu"
+
+  // Użyj backticków (`) do budowania stringu z wstawieniem zmiennej
+  window.location.href = `https://pewniaczki.auth.us-east-1.amazoncognito.com/logout?client_id=${clientId}&logout_uri=${logoutUri}`;
 }
+
+
+const awsLogin = () => {
+  window.location.href =  "https://pewniaczki.auth.us-east-1.amazoncognito.com/oauth2/authorize?response_type=code&client_id=4e9n69qdrtscnsd0d3907csknu&redirect_uri=http://localhost:8080"
+}
+const awsSignUp = () => {
+  window.location.href = "https://pewniaczki.auth.us-east-1.amazoncognito.com/signup?response_type=code&client_id=4e9n69qdrtscnsd0d3907csknu&redirect_uri=http://localhost:8080"
+}
+
+const handleLoginAWS = async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+  console.log(code);
+
+  if (code) {
+    try {
+      const response = await fetch(
+        `https://pewniaczki.auth.us-east-1.amazoncognito.com/oauth2/token`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            "Authorization": "Basic " + btoa("4e9n69qdrtscnsd0d3907csknu:j4kpi85logc1v12po8dmf9klaejhtbsk45eg7bu7jvh13uqeu42")
+
+          },
+          body: new URLSearchParams({
+            grant_type: 'authorization_code',
+            client_id: '4e9n69qdrtscnsd0d3907csknu', // Podmień na swój Client ID
+            code: code,
+            redirect_uri: 'http://localhost:8080'
+          })    
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const tokenData = await response.json();
+
+      // Przechowaj tokeny w localStorage
+      localStorage.setItem('access_token', tokenData.access_token);
+      localStorage.setItem('id_token', tokenData.id_token);
+      localStorage.setItem('refresh_token', tokenData.refresh_token);
+      refreshTokenInterval = setInterval(refreshToken, 60000)
+
+      // Ustaw stan zalogowania
+      loggedIn.value = true;
+      
+    } catch (error) {
+      console.error('Error exchanging code for tokens:', error);
+    }
+  }
+};
+
+const refreshToken = () =>{
+    console.log("update")
+    const headers = {   
+  "Content-Type": "application/x-www-form-urlencoded",
+  "Authorization": "Basic " + btoa("4e9n69qdrtscnsd0d3907csknu:j4kpi85logc1v12po8dmf9klaejhtbsk45eg7bu7jvh13uqeu42")
+  
+}
+   
+    let refreshToken = localStorage.getItem('refresh_token');
+
+    const urlRefresh = "https://pewniaczki.auth.us-east-1.amazoncognito.com/oauth2/token"
+    let data = new URLSearchParams({
+        "grant_type": "refresh_token",
+        "client_id": "4e9n69qdrtscnsd0d3907csknu",
+        "refresh_token": refreshToken
+      });
+
+    fetch(urlRefresh, {
+        method: "POST",
+        headers: headers,
+        body: data
+      })
+      .then(response => response.json())
+      .then(data =>{ console.log(data.access_token);
+      localStorage.setItem('access_token', data.access_token);
+    //   localStorage.setItem('refreshToken', data.refresh_token)
+    }
+      
+    
+    )
+      .catch(error => console.error("Error:", error));
+
+}
+
+
+
+onMounted(() => {
+  handleLoginAWS(); // Uruchom logikę logowania, gdy komponent się zamontuje
+
+  if (loggedIn.value) {
+    refreshTokenInterval.value = setInterval(refreshToken, 60000); // Odświeżaj token co 60 sekund
+  }
+});
+
 </script>
 <template>
   <div>
@@ -65,7 +193,7 @@ const logout = () => {
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#/" @click="() => navigate('/')">Home</a>
+            <a class="nav-link" href="#/" @click="() => print()">Home</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#/icon" @click="() => toggleUserOptions()">Bets</a>
@@ -75,8 +203,8 @@ const logout = () => {
           </li>
         </ul>
         <div class="buttons">
-          <button v-if="!loggedIn" class="btn btn-light" @click="() => navigate('/login')">Zaloguj się</button>
-          <button v-if="!loggedIn" class="btn btn-light" @click="() => navigate('/register')">Załóż konto</button>
+          <button v-if="!loggedIn" class="btn btn-light" @click="() => awsLogin()">Zaloguj się</button>
+          <button v-if="!loggedIn" class="btn btn-light" @click="() => awsSignUp()">Załóż konto</button>
           <div v-if="loggedIn" class="saldo-container">
            <p  class="saldo-label">Depozyt</p>
            <p class="saldo-amount">20 PLN</p>
@@ -102,6 +230,7 @@ const logout = () => {
     </div> -->
     <component :is="currentView" @my-login="handleLogin" />
   </div>
+   <button  class="btn btn-light" @click="() => print()">Zaloguj się</button>
 </template>
 <style scoped>
 body {

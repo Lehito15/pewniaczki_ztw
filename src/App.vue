@@ -4,22 +4,24 @@ import Login from './components/Login-form.vue'
 import MainScreen from './components/Main_screen.vue'
 import Bets from './components/Sport_Bets.vue'
 import YourBet from './components/Your_Bet.vue'
-import RegisterUser from './components/Register_user.vue'
+// import RegisterUser from './components/Register_user.vue'
 // import xd from './components/compon_1.vue'
 import icon from './components/icon_action.vue'
 import my_bets from './components/My_Bets.vue'
 import add_money from './components/Add_money.vue'
+import make_bet from'./components/make_bet.vue'
 
 const routes = {
   '/login': Login,
   '/': MainScreen,
   '/bets': Bets,
   '/your': YourBet,
-  '/register': RegisterUser,
+  '/register': make_bet,
   '/com':my_bets,
   '/icon': icon,
   '/my-bets': my_bets,
-  '/add-money': add_money
+  '/add-money': add_money,
+  '/make-bet': make_bet
 
 }
 import { onMounted } from 'vue'
@@ -51,10 +53,36 @@ const print = () =>{
   console.log("logoituri")
   console.log(logoutUri);
 }
+const getBalance = async() =>{
+   try {
+        const access_token = localStorage.getItem('access_token');
+        const response = await fetch('http://localhost:8081/account-balance', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+        }
+
+        const data = await response.json();
+        amount = data; // Aktualizacja wartości salda
+        console.log('Current balance:', data);
+      } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        // Obsługa błędów
+        this.errorMessage = 'Nie udało się pobrać salda konta.';
+      }
+
+}
 
 
 const loggedIn = ref(JSON.parse(localStorage.getItem('loggedIn')) || false)
 const showOptions = ref(false)
+let amount = 0
 let refreshTokenInterval = null
 
 const handleLogin = () => {
@@ -129,6 +157,7 @@ const handleLoginAWS = async () => {
       localStorage.setItem('id_token', tokenData.id_token);
       localStorage.setItem('refresh_token', tokenData.refresh_token);
       refreshTokenInterval = setInterval(refreshToken, 60000)
+      localStorage.setItem('loggedIn', true)
 
       // Ustaw stan zalogowania
       loggedIn.value = true;
@@ -177,6 +206,8 @@ const refreshToken = () =>{
 
 onMounted(() => {
   handleLoginAWS(); // Uruchom logikę logowania, gdy komponent się zamontuje
+  getBalance();
+  
 
   if (loggedIn.value) {
     refreshTokenInterval.value = setInterval(refreshToken, 60000); // Odświeżaj token co 60 sekund
@@ -195,11 +226,14 @@ onMounted(() => {
           <li class="nav-item">
             <a class="nav-link" href="#/" @click="() => print()">Home</a>
           </li>
+          <li class="nav-item" v-if="loggedIn">
+            <a class="nav-link" href="#/my-bets" @click="() => navigate('/my-bets')">MyBet</a>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="#/icon" @click="() => toggleUserOptions()">Bets</a>
           </li>
-          <li class="nav-item">
-            <a class="dropdown-item" href="#" @click="logout">Wyloguj się</a>
+          <li class="nav-item" v-if="loggedIn">
+            <a class="nav-link" href="#" @click="logout">Wyloguj się</a>
           </li>
         </ul>
         <div class="buttons">
@@ -207,7 +241,7 @@ onMounted(() => {
           <button v-if="!loggedIn" class="btn btn-light" @click="() => awsSignUp()">Załóż konto</button>
           <div v-if="loggedIn" class="saldo-container">
            <p  class="saldo-label">Depozyt</p>
-           <p class="saldo-amount">20 PLN</p>
+           <p> <span>{{ amount }} zł</span></p>
           </div>
           <button v-if="loggedIn" class="btn btn-dark" @click="() => navigate('/add-money')">Wpłać</button>
           <div class="user-options-container">
@@ -230,7 +264,7 @@ onMounted(() => {
     </div> -->
     <component :is="currentView" @my-login="handleLogin" />
   </div>
-   <button  class="btn btn-light" @click="() => print()">Zaloguj się</button>
+   <!-- <button  class="btn btn-light" @click="() => print()">Zaloguj się</button> -->
 </template>
 <style scoped>
 body {

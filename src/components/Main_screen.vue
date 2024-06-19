@@ -5,13 +5,13 @@
     </div>
     <div class="content-wrapper">
       <div class="component-small">
-        <Categories />
+        <Categories @category-clicked="handleCategorieClick"  @category-clicked_start="handleCategorieClickStart"/>
       </div>
       <div class="component-small-right">
-        <Categories />
+        <Categories @category-clicked="handleCategorieClick"  @category-clicked_start="handleCategorieClickStart"/>
       </div>
       <div class="component-large">
-        <Betss @bet-selected="handleBetSelected"/>
+        <Betss @bet-selected="handleBetSelected"  />
         <Your_Bet />
       </div>
     </div>
@@ -21,7 +21,7 @@
 <script>
 import Betss from '../components/Sport_Bets.vue'
 import Categories from '../components/Sport_Categories.vue'
-import Your_Bet from './Your_Bet.vue';
+import Your_Bet from '../components/Your_Bet.vue';
 import eventHub from '../eventHub.js';
 
 export default {
@@ -34,7 +34,18 @@ export default {
     handleBetSelected() {
       console.log('main');
       eventHub.emit('bet-calc');
+      // eventHub.emit('category-clicked');
+      
+    },
+    handleCategorieClick(){
+      console.log('change category');
+      eventHub.emit('category-clicked');
+    },
+    handleCategorieClickStart(){
+      console.log('change category');
+      eventHub.emit('category-clicked-start');
     }
+
   }
 }
 </script>

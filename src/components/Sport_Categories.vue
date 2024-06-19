@@ -4,10 +4,11 @@
     
     <ul class="list-group">
       <!-- Pierwsza pozycja to "Start" -->
-      <li class="list-group-item sport-item d-flex justify-content-between align-items-center">
+      <li class="list-group-item sport-item d-flex justify-content-between align-items-center" @click="goStart()">
         <span>Start</span>
         <i 
           @click="toggleFavorite('Start')" 
+         
           :class="['favorite-icon', favorites.includes('Start') ? 'fas fa-star' : 'far fa-star']"
         ></i>
       </li>
@@ -17,6 +18,7 @@
         v-for="(sport, index) in sports" 
         :key="index" 
         class="list-group-item sport-item d-flex justify-content-between align-items-center"
+         @click="handleCategoryClick(sport)"
       >
         <span>{{ sport }}</span>
         <i 
@@ -32,7 +34,7 @@
 export default {
   data() {
     return {
-      sports: ['Piłka nożna', 'Koszykówka', 'Siatkówka', 'Tenis', 'Bieganie', 'Pływanie'],
+      sports: ['Football', 'Tennis', 'Siatkówka', 'Tenis', 'Bieganie', 'Pływanie'],
       favorites: [],
       categories: []
     };
@@ -44,17 +46,32 @@ export default {
       } else {
         this.favorites.push(sport);
       }
+       
+    },
+    goStart(){
+      this.$emit('category-clicked_start');
     },
     async fetchCategories(){
       try { 
-        const response = await fetch('http://localhost:8081/events');
+        const response = await fetch('http://localhost:8081/categories');
         const data = await response.json();
         this.categories = data;
         console.log(data);
       } catch (error) {
         console.error('Błąd podczas pobierania kategorii', error);
       }
+    },
+    handleCategoryClick(sport){
+      console.log(sport);
+      console.log("klikam");
+      localStorage.setItem('sport', sport)
+      this.$emit('category-clicked');
+     
+      // this.$emit('bet-selected');
     }
+  },
+  mounted(){
+    this.fetchCategories();
   }
 };
 </script>

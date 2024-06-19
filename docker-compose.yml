@@ -1,0 +1,7 @@
+services:
+  frontend:
+    build:
+      context: "C:/Users/HP/webowka/peniaczki_ztw/pewniaczki_ztw"  
+      dockerfile: Dockerfile  
+    ports:
+      - "8080:8080"  

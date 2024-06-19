@@ -1,11 +1,15 @@
-<!-- components/DepositFunds.vue -->
 <template>
   <div class="deposit-container">
     <h2>Dodaj środki do konta</h2>
     <div class="current-balance">
-      <p>Obecne saldo: <span>{{ balance }} zł</span></p>
+      <p>Obecne saldo: <span>{{ deposit }} zł</span></p>
     </div>
-    <form @submit.prevent="handleDeposit">
+    <form @submit.prevent="updateBalance">
+      <div class="quick-amounts">
+        <button type="button" @click="setAmount(5)" class="btn btn-secondary">5 zł</button>
+        <button type="button" @click="setAmount(10)" class="btn btn-secondary">10 zł</button>
+        <button type="button" @click="setAmount(50)" class="btn btn-secondary">50 zł</button>
+      </div>
       <div class="form-group">
         <label for="amount">Kwota (zł):</label>
         <input
@@ -13,47 +17,90 @@
           id="amount"
           v-model="amount"
           min="1"
-          step="0.01"
+          step="1"
           required
           class="form-control"
         />
       </div>
-      <button type="submit" class="btn btn-primary" @click="addMoney">Dodaj środki</button>
+      <button type="submit" class="btn btn-primary">Dodaj środki</button>
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
     </form>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+<script>
+export default {
+  data() {
+    return {
+      deposit: 0,
+      amount: 0,
+      errorMessage: ''
+    };
+  },
+  methods: {
+    async getBalance() {
+      try {
+        console.log('ekokok')
+        const access_token = localStorage.getItem('access_token');
+        const response = await fetch('http://localhost:8081/account-balance', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
 
-// Saldo użytkownika - początkowa wartość to 0 zł
-const balance = ref(0.0)
+        if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+        }
 
-// Kwota do dodania - inicjalizowana jako pusty ciąg znaków
-const amount = ref('')
+        const data = await response.json();
+        this.deposit = data; // Aktualizacja wartości salda
+        console.log('Current balance:', data);
+      } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        // Obsługa błędów
+        this.errorMessage = 'Nie udało się pobrać salda konta.';
+      }
+    },
+     async updateBalance() {
+      console.log('Amount to deposit:', this.amount);
+      try {
+        const access_token = localStorage.getItem('access_token');
+        const response = await fetch('http://localhost:8081/update-balance', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${access_token}`,
+            'Content-Type': 'application/json'
+          },
+         body: JSON.stringify(this.amount)
+        });
 
-// Wiadomość o błędzie walidacji
-const errorMessage = ref('')
+        if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+        }
 
-// Funkcja obsługująca dodanie środków
-const handleDeposit = () => {
-  const depositAmount = parseFloat(amount.value)
-  // Walidacja kwoty
-  if (isNaN(depositAmount) || depositAmount <= 0) {
-    errorMessage.value = 'Proszę podać poprawną kwotę większą niż 0'
-    return
+        const data = await response.json();
+        console.log('Balance updated successfully:', data);
+        this.getBalance(); 
+        alert('Środki zostały dodane pomyślnie!');
+        this.amount = 0; 
+        
+        window.location.href = '#/';
+      } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        // Obsługa błędów
+        alert('Nie udało się dodać środków.');
+      }
+    },
+    setAmount(value) {
+      this.amount = value;
+    }
+  },
+  mounted() {
+    this.getBalance(); // Wywołanie getBalance() przy montowaniu komponentu
   }
-  
-  
-  // Aktualizacja salda
-  balance.value += depositAmount
-  // Resetowanie pola kwoty
-  amount.value = ''
-  // Czyszczenie wiadomości o błędzie
-  errorMessage.value = ''
-  window.location.href = '/'
-}
+};
 </script>
 
 <style scoped>
@@ -112,5 +159,15 @@ const handleDeposit = () => {
   color: red;
   margin-top: 10px;
   text-align: center;
+}
+
+.quick-amounts {
+  display: flex; /* Ustawia przyciski w jednym rzędzie */
+  gap: 10px; /* Odstępy między przyciskami */
+  margin-bottom: 15px; /* Odstęp od następnego elementu formularza */
+}
+
+.quick-amounts .btn {
+  flex: 1; /* Umożliwia przyciskom zajęcie równomiernie dostępnej przestrzeni */
 }
 </style>

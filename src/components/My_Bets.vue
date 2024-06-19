@@ -1,4 +1,3 @@
-<!-- components/Your_Bet.vue -->
 <template>
   <div class="your-bet-container">
     <div class="slider-nav">
@@ -16,31 +15,108 @@
         <!-- Zawartość dla "Aktywne" -->
         <p>Twoje aktywne kupony:</p>
         <ul class="coupon-list">
-          <li v-for="(coupon, index) in activeCoupons" :key="index">{{ coupon }}</li>
+          <li v-for="(coupon, index) in activeCoupons" :key="index">
+            <p>{{ coupon.bet.betDate }} - Deposit: {{ coupon.bet.deposit }}</p>
+            <p v-if="coupon.teamEvent">
+              Wydarzenie: {{ coupon.teamEvent.eventDate }} - Liga: {{ coupon.teamEvent.league?.name || 'N/A' }} - Dyscyplina: {{ coupon.teamEvent.discipline?.name || 'N/A' }} - Team: {{ coupon.teamWinner?.name || 'N/A' }}
+            </p>
+            <p v-else-if="coupon.sportsmanWinner">
+              Wydarzenie: {{ coupon.bet.betDate }} - Deposit: {{ coupon.bet.deposit }} - Wydarzenie: {{ coupon.sportsmanWinner?.eventDate || 'N/A' }} - Sportsman: {{ coupon.sportsmanWinner?.lastName || 'N/A' }}
+            </p>
+            <p v-else>
+              Wydarzenie: {{ coupon.bet.betDate }} - Deposit: {{ coupon.bet.deposit }} - Wydarzenie: {{ coupon.teamEvent?.name || 'N/A' }} - Typ: Remis
+            </p>
+          </li>
         </ul>
       </div>
       <div v-show="currentSection === 'settled'" class="slider-section">
         <!-- Zawartość dla "Rozliczone" -->
         <p>Twoje rozliczone kupony:</p>
         <ul class="coupon-list">
-          <li v-for="(coupon, index) in settledCoupons" :key="index">{{ coupon }}</li>
+          <li v-for="(coupon, index) in settledCoupons" :key="index">
+            <p>{{ coupon.bet.betDate }} - Deposit: {{ coupon.bet.deposit }}</p>
+            <p v-if="coupon.teamEvent">
+              Wydarzenie: {{ coupon.teamEvent.eventDate }} - Liga: {{ coupon.teamEvent.league?.name || 'N/A' }} - Dyscyplina: {{ coupon.teamEvent.discipline?.name || 'N/A' }} - Team: {{ coupon.teamWinner?.name || 'N/A' }}
+            </p>
+            <p v-else-if="coupon.sportsmanWinner">
+              Wydarzenie: {{ coupon.bet.betDate }} - Deposit: {{ coupon.bet.deposit }} - Wydarzenie: {{ coupon.teamEvent?.name || 'N/A' }} - Team: {{ coupon.teamWinner?.name || 'N/A' }}
+            </p>
+            <p v-else>
+              Wydarzenie: {{ coupon.teamEvent?.eventDate || 'N/A' }} - Deposit: {{ coupon.bet.deposit }} - Wydarzenie: {{ coupon.teamEvent?.name || 'N/A' }} - Typ: Remis
+            </p>
+          </li>
         </ul>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+<script>
+export default {
+  data() {
+    return {
+      currentSection: 'active',
+      activeCoupons: [],
+      settledCoupons: []
+    }
+  },
+  methods: {
+    selectSection(section) {
+      this.currentSection = section
+    },
+    async fetchActive(){
+      try {
+        const access_token = localStorage.getItem('access_token');
+        const response = await fetch('http://localhost:8081/active-bet-events', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
 
-const currentSection = ref('active')
+        if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+        }
 
-// Przykładowe dane kuponów - zamień je na dane pobrane z backendu
-const activeCoupons = ref(['Kupon 1', 'Kupon 2', 'Kupon 3'])
-const settledCoupons = ref(['Kupon A', 'Kupon B', 'Kupon C','Kupon A', 'Kupon B', 'Kupon C','Kupon A', 'Kupon B', 'Kupon C','Kupon A', 'Kupon B', 'Kupon C','Kupon A', 'Kupon B', 'Kupon C'])
+        const data = await response.json();
+        this.activeCoupons = data; // Aktualizacja wartości salda
+        console.log('active:', data);
+      } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        // Obsługa błędów
+        this.errorMessage = 'Nie udało się pobrać aktywnych kuponów.';
+      }
+    },
+    async fetchInactive(){
+      try {
+        const access_token = localStorage.getItem('access_token');
+        const response = await fetch('http://localhost:8081/inactive-bet-events', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
 
-const selectSection = (section) => {
-  currentSection.value = section
+        if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+        }
+
+        const data = await response.json();
+        this.settledCoupons = data; // Aktualizacja wartości salda
+        console.log('inactive:', data);
+      } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        // Obsługa błędów
+        this.errorMessage = 'Nie udało się pobrać rozliczonych kuponów.';
+      }
+    }
+  },
+  mounted(){
+    this.fetchActive();
+    this.fetchInactive();
+  }
 }
 </script>
 
@@ -78,9 +154,6 @@ const selectSection = (section) => {
   border-radius: 50%;
   padding: 5px 10px;
   font-size: 12px;
-  /* position: absolute; */
-  top: 5px;
-  right: 10px;
 }
 
 .slider-nav button.selected {
@@ -112,6 +185,7 @@ const selectSection = (section) => {
   margin-bottom: 10px;
   border-radius: 5px;
 }
+
 .coupon-list {
   max-height: 600px; /* Maksymalna wysokość, po której lista zaczyna się przewijać */
   overflow-y: auto; /* Pozwala na przewijanie w osi Y, gdy zawartość przekracza maksymalną wysokość */

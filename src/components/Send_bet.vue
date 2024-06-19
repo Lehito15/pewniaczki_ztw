@@ -17,7 +17,7 @@
         <label>Wygrana:</label>
         <span>{{ calculateWinnings }} PLN</span>
       </div>
-      <button @click="confirmBet">Podsumowanie</button>
+      <button @click="confirmBet">Wyślij</button>
     </div>
   </div>
 </template>
@@ -27,8 +27,8 @@ import eventHub from '../eventHub.js';
 export default {
     data() {
         return {
-            stake: 10, // Początkowa wartość stawki
-            odds: 0 // Przykładowy kurs
+            stake: localStorage.getItem('deposit'), // Początkowa wartość stawki
+            odds: localStorage.getItem("odd") // Przykładowy kurs
         };
     },
     computed: {
@@ -38,25 +38,62 @@ export default {
         }
     },
     methods: {
-        confirmBet() {
-  const logged = localStorage.getItem('loggedIn');
-  const bets = localStorage.getItem('selectedBetsList');
+    async    confirmBet() {
+        try{
+
+        
   
-  if (!bets) {
-    alert('Nie wybrano żadnych zakładów!');
-    return;
-  }
+  const bets = JSON.parse(localStorage.getItem('selectedBetsList'));
+  console.log("moje bety");
+
+  console.log(bets);
   
-  if (logged === 'true') {
-    console.log('Bet confirmed!');
-    localStorage.setItem('deposit', this.stake);
-    localStorage.setItem('odd', this.odds);
-    window.location.href = '#/make-bet'
-  } else {
-    alert('Musisz być zalogowany.');
+    if (bets.length === 0) {
+            alert('Nie wybrano żadnych zakładów!');
+            return;
+        }
+  let newList = [];
+ bets.forEach(item => {
+    // Sprawdzenie, czy isSingleCompetition jest prawdziwe
+    
+      // Dodanie nowego elementu do listy z wymaganymi danymi
+      newList.push({
+        eventID: item.id,
+        winnerID: item.id1,
+        isSingleCompetition: item.isSingleCompetition
+      });
+    
+  });
+
+  const body = {
+    eventsWinners: newList,
+    deposit: this.stake
   }
+
+
+  const access_token = localStorage.getItem('access_token');
+        const response = await fetch('http://localhost:8081/make-bet', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${access_token}`,
+            'Content-Type': 'application/json'
+          },
+         body: JSON.stringify(body)
+        });
+        console.log(response);
+        alert('Kupon postawiony');
+        window.location.href = '#/';
+        }
+        catch(error){
+            console.error('There was a problem with the fetch operation:', error);
+        // Obsługa błędów
+        alert('Nie udało się dodać środków.');
+        }
+  
+  
+  
 },
- calculete() {
+        calculete() {
       const storedBets = localStorage.getItem('selectedBetsList');
       const bets = storedBets ? JSON.parse(storedBets) : [];
       console.log("calculate", bets);
